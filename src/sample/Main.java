@@ -1,89 +1,121 @@
 package sample;
 
+import imageProcessing.Functions;
 import javafx.application.Application;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
-import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.chart.BarChart;
+import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.TextField;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.text.Text;
 import javafx.stage.Stage;
-
-import java.awt.image.BufferedImage;
+import models.Image;
 
 public class Main extends Application {
-
-    @FXML
-    private BarChart bc;
-    @FXML
-    private BarChart bc_dissection;
-    @FXML
-    private BarChart bc_sobel;
-    @FXML
-    private TextField mnTextField;
-    @FXML
-    private TextField mxTextField;
-    @FXML
-    private TextField fileNameTextField;
-    @FXML
-    private javafx.scene.control.Button okButton ;
-    @FXML
-    private Text statusText;
+    public ComboBox<String> comboBox;
+    public Button btnOK;
+    public TextField fileNameTxtField;
+    public TextField fileNameTxtField2;
 
     @Override
-    public void start(Stage primaryStage) throws Exception{
+    public void start(final Stage primaryStage) throws Exception {
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("main_layout.fxml"));
         fxmlLoader.setController(this);
-        primaryStage.setTitle("Hello World");
-        primaryStage.setScene(new Scene((Parent) fxmlLoader.load(), 1500, 500));
+        primaryStage.setScene(new Scene((Parent) fxmlLoader.load(), 250, 200));
         primaryStage.show();
 
-        bc.setBarGap(0);
-        bc.setCategoryGap(0);
-        bc_dissection.setBarGap(0);
-        bc_dissection.setCategoryGap(0);
-        bc_sobel.setBarGap(0);
-        bc_sobel.setCategoryGap(0);
-
-        okButton.setOnMouseClicked(new EventHandler<MouseEvent>() {
+        comboBox.setItems(getOptions());
+        comboBox.setOnAction(new EventHandler<ActionEvent>() {
             @Override
-            public void handle(MouseEvent mouseEvent) {
-                onOkClick();
+            public void handle(ActionEvent event) {
+                setOnComboBoxSelected();
+            }
+        });
+        btnOK.setOnMouseClicked(new EventHandler<MouseEvent>() {
+            @Override
+            public void handle(MouseEvent event) {
+                setOnBtnOkClicked();
             }
         });
     }
 
-    private void onOkClick() {
-        String fileName = fileNameTextField.getText();
-        BufferedImage image = ImageLoader.load("images/src/" + fileName);
-        Integer[][] src = ImageLoader.getGrayValues(image);
-        bc.setTitle("Source");
-        bc.getData().addAll(ImageProcessing.getHistogramSeries(src));
+    private void setOnComboBoxSelected() {
+        fileNameTxtField.setVisible(true);
+        fileNameTxtField2.setVisible(true);
+        btnOK.setVisible(true);
+        switch (comboBox.getSelectionModel().getSelectedIndex()) {
+            case 3:
+            case 11:
+                fileNameTxtField2.setVisible(false);
+                break;
+        }
+    }
 
-        Integer[][] res = ImageProcessing.dissection(src,
-                Integer.valueOf(mnTextField.getText()),
-                Integer.valueOf(mxTextField.getText()));
-        ImageLoader.save(res, "images/res/" + fileName + "_dissection", image);
-        bc_dissection.setTitle("Dissection");
-        bc_dissection.getData().addAll(ImageProcessing.getHistogramSeries(res));
+    private void setOnBtnOkClicked() {
+        Image image = new Image(fileNameTxtField.getText());
+        switch (comboBox.getSelectionModel().getSelectedIndex()) {
+            case 0:
+                Functions.doAND(image, new Image(fileNameTxtField2.getText()));
+                break;
+            case 1:
+                Functions.doOR(image, new Image(fileNameTxtField2.getText()));
+                break;
+            case 2:
+                Functions.doXOR(image, new Image(fileNameTxtField2.getText()));
+                break;
+            case 3:
+                Functions.doNOT(image);
+                break;
+            case 4:
+                Functions.doConstAddition(image, Double.parseDouble(fileNameTxtField2.getText()));
+                break;
+            case 5:
+                Functions.doConstMultiplication(image, Double.parseDouble(fileNameTxtField2.getText()));
+                break;
+            case 6:
+                Functions.doConstSubtraction(image, Double.parseDouble(fileNameTxtField2.getText()));
+                break;
+            case 7:
+                Functions.doImagesAddition(image, new Image(fileNameTxtField2.getText()));
+                break;
+            case 8:
+                Functions.doImagesSubtraction(image, new Image(fileNameTxtField2.getText()));
+                break;
+            case 9:
+                Functions.doMasking(image, new Image(fileNameTxtField2.getText()));
+                break;
+            case 10:
+                Functions.doSawtoothCut(image, Integer.parseInt(fileNameTxtField2.getText()));
+                break;
+            case 11:
+                Functions.doHistogramEqualization(image);
+                break;
+        }
+    }
 
-        Integer[][] red_filt = ImageProcessing.SobelFilter(ImageLoader.getRedValues(image));
-        Integer[][] green_filt = ImageProcessing.SobelFilter(ImageLoader.getGreenValues(image));
-        Integer[][] blue_filt = ImageProcessing.SobelFilter(ImageLoader.getBlueValues(image));
-        ImageLoader.save(red_filt, green_filt, blue_filt, "images/res/" + fileName + "_sobel", image);
-
-        bc_sobel.setTitle("Sobel Operator");
-        bc_sobel.getData().addAll(ImageProcessing.getHistogramSeries(ImageLoader.getGrayValues(ImageLoader.load("images/res/" + fileName + "_sobel"))));
-
-        red_filt = ImageProcessing.degradation(ImageLoader.getRedValues(image));
-        green_filt = ImageProcessing.degradation(ImageLoader.getGreenValues(image));
-        blue_filt = ImageProcessing.degradation(ImageLoader.getBlueValues(image));
-        ImageLoader.save(red_filt, green_filt, blue_filt, "images/res/" + fileName + "_degradation", image);
-
-        statusText.setText("Success");
+    private ObservableList<String> getOptions() {
+        return FXCollections.observableArrayList(
+                "Логическое И",                 //0
+                "Логическое ИЛИ",               //1
+                "Логическое ИСКЛЮЧАЮЩЕЕ ИЛИ",   //2
+                "Логическое отрицание",         //3
+                "Сложение с константой",        //4
+                "Умножение на константу",       //5
+                "Вычитание константы",          //6
+                "Сложение изображений",         //7
+                "Вычитание изображений",        //8
+                "Маскирование",                 //9
+                "Пилообразный яркостный срез",  //10
+                "Эквализация гистограммы"//,      //11
+//                "Оператор Собеля",              //12
+//                "Размытие (слабое)",            //13
+//                "Препарирование"                //14
+        );
     }
 
     public static void main(String[] args) {

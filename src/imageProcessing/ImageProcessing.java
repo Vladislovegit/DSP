@@ -1,12 +1,10 @@
-package sample;
+package imageProcessing;
 
 import javafx.scene.chart.XYChart;
 
-import java.lang.reflect.Array;
 import java.util.Arrays;
 
 public class ImageProcessing {
-
     public static Integer[][] dissection(Integer[][] pixels, int lowerLimit, int upperLimit) {
         Integer[][] res = new Integer[pixels.length][pixels[0].length];
         for (int i = 0; i < pixels.length; i++) {
@@ -16,38 +14,6 @@ public class ImageProcessing {
         for (int i = 0; i < pixels.length; i++) {
             for (int j = 0; j < pixels[i].length; j++) {
                 res[i][j] = (res[i][j] > lowerLimit && res[i][j] < upperLimit) ? 255 : 0;
-            }
-        }
-        return res;
-    }
-
-    public static Integer[][] scan(Integer[][] pixels) {
-        Integer[][] res = new Integer[pixels.length][pixels[0].length];
-        for (int i = 0; i < pixels.length; i++)
-            Arrays.fill(pixels[i], 0);
-
-        Integer N = 0;
-        for (int i = 0; i < pixels.length; i++) {
-            for (int j = 0; j < pixels[i].length; j++) {
-                if(pixels[i][j] != 0) {
-                    if((res[i - 1][j] == 0) && (res[i][j - 1] == 0)) {
-                        N++;
-                        res[i][j] = N;
-                     }
-                    else if ((res[i - 1][j] != 0) || (res[i][j - 1] != 0)) {
-                        if (res[i - 1][j] != 0)
-                            res[i][j] = res[i - 1][j];
-                        else
-                            res[i][j] = res[i][j - 1];
-                    }
-                    else if ((res[i - 1][j] != 0) && (res[i][j - 1] != 0) && res[i - 1][j].equals(res[i][j - 1])) {
-                        res[i][j] = res[i - 1][j];
-                    }
-                    else if ((res[i - 1][j] != 0) && (res[i][j - 1] != 0) && !res[i - 1][j].equals(res[i][j - 1])) {
-                        res[i][j] = res[i - 1][j];
-
-                    }
-                }
             }
         }
         return res;
@@ -73,9 +39,6 @@ public class ImageProcessing {
 
         XYChart.Series series = new XYChart.Series();
         series.setName("BarChart");
-
-
-
 
         for (int i = 0; i < pixels.length; i++) {
             for (int j = 0; j < pixels[i].length; j++) {
@@ -129,7 +92,7 @@ public class ImageProcessing {
         return res;
     }
 
-    public static Integer[][] convolution(Integer[][] pixels, Integer[][] matrix) {
+    private static Integer[][] convolution(Integer[][] pixels, Integer[][] matrix) {
         Integer width = pixels.length;
         Integer height = pixels[0].length;
 
